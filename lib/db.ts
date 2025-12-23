@@ -1,4 +1,4 @@
-import dbConnect from './mongoose';
+import connectDB from './mongodb';
 import LicenseModel from './models/License';
 
 export interface License {
@@ -31,13 +31,13 @@ function mapDoc(doc: any): License {
 }
 
 export async function getLicenses(): Promise<License[]> {
-    await dbConnect();
+    await connectDB();
     const docs = await LicenseModel.find({}).sort({ createdAt: -1 });
     return docs.map(mapDoc);
 }
 
 export async function saveLicense(license: License) {
-    await dbConnect();
+    await connectDB();
     // Upsert based on ID
     await LicenseModel.findOneAndUpdate(
         { id: license.id },
@@ -47,7 +47,7 @@ export async function saveLicense(license: License) {
 }
 
 export async function deleteLicense(id: string) {
-    await dbConnect();
+    await connectDB();
     await LicenseModel.deleteOne({ id });
 }
 
