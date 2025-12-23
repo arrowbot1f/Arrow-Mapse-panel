@@ -1,7 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-
-const DB_PATH = path.join(process.cwd(), 'data', 'licenses.json');
+import dbConnect from './mongoose';
+import LicenseModel from './models/License';
 
 export interface License {
     id: string;
@@ -16,41 +14,40 @@ export interface License {
     created: string;
 }
 
-function ensureDb() {
-    if (!fs.existsSync(path.dirname(DB_PATH))) {
-        fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-    }
-    if (!fs.existsSync(DB_PATH)) {
-        fs.writeFileSync(DB_PATH, JSON.stringify([], null, 2));
-    }
+// Convert Mongoose doc to License interface
+function mapDoc(doc: any): License {
+    return {
+        id: doc.id,
+        name: doc.name,
+        mobile: doc.mobile,
+        email: doc.email,
+        country: doc.country,
+        hwid: doc.hwid,
+        key: doc.key,
+        expiry: doc.expiry,
+        status: doc.status,
+        created: doc.created
+    };
 }
 
-export function getLicenses(): License[] {
-    ensureDb();
-    try {
-        const data = fs.readFileSync(DB_PATH, 'utf-8');
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
+export async function getLicenses(): Promise<License[]> {
+    await dbConnect();
+    const docs = await LicenseModel.find({}).sort({ createdAt: -1 });
+    return docs.map(mapDoc);
 }
 
-export function saveLicense(license: License) {
-    ensureDb();
-    const licenses = getLicenses();
-    // Check if exists
-    const idx = licenses.findIndex(l => l.id === license.id);
-    if (idx >= 0) {
-        licenses[idx] = license;
-    } else {
-        licenses.unshift(license);
-    }
-    fs.writeFileSync(DB_PATH, JSON.stringify(licenses, null, 2));
+export async function saveLicense(license: License) {
+    await dbConnect();
+    // Upsert based on ID
+    await LicenseModel.findOneAndUpdate(
+        { id: license.id },
+        license,
+        { upsert: true, new: true }
+    );
 }
 
-export function deleteLicense(id: string) {
-    ensureDb();
-    let licenses = getLicenses();
-    licenses = licenses.filter(l => l.id !== id);
-    fs.writeFileSync(DB_PATH, JSON.stringify(licenses, null, 2));
+export async function deleteLicense(id: string) {
+    await dbConnect();
+    await LicenseModel.deleteOne({ id });
 }
+

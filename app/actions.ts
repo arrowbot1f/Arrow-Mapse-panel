@@ -5,17 +5,17 @@ import { getLicenses, saveLicense, deleteLicense as removeLicense, License } fro
 import { revalidatePath } from "next/cache";
 
 export async function fetchLicenses() {
-    return getLicenses();
+    return await getLicenses();
 }
 
 export async function removeLicenseAction(id: string) {
-    removeLicense(id);
+    await removeLicense(id);
     revalidatePath('/');
     return { success: true };
 }
 
 export async function toggleBlockAction(id: string) {
-    const licenses = getLicenses();
+    const licenses = await getLicenses();
     const license = licenses.find(l => l.id === id);
     if (license) {
         // Toggle Logic
@@ -27,7 +27,7 @@ export async function toggleBlockAction(id: string) {
         } else {
             license.status = 'Blocked';
         }
-        saveLicense(license);
+        await saveLicense(license);
         revalidatePath('/');
         return { success: true, status: license.status };
     }
@@ -66,7 +66,7 @@ export async function createLicense(formData: FormData) {
         created: new Date().toISOString().split('T')[0]
     };
 
-    saveLicense(newLicense);
+    await saveLicense(newLicense);
     revalidatePath('/');
 
     return { success: true, key, expDate: displayExpDate, license: newLicense };

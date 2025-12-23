@@ -10,7 +10,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ valid: false, message: "Missing Data" });
         }
 
-        const licenses = getLicenses();
+        const licenses = await getLicenses();
         const license = licenses.find(l => l.key === key);
 
         if (!license) {
