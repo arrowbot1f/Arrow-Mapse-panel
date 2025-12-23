@@ -35,41 +35,46 @@ export async function toggleBlockAction(id: string) {
 }
 
 export async function createLicense(formData: FormData) {
-    const hwid = formData.get("hwid") as string;
-    const days = parseInt(formData.get("days") as string || "365");
-    const name = formData.get("name") as string;
-    const mobile = formData.get("mobile") as string;
-    const email = formData.get("email") as string;
-    const country = formData.get("country") as string;
+    try {
+        const hwid = formData.get("hwid") as string;
+        const days = parseInt(formData.get("days") as string || "365");
+        const name = formData.get("name") as string;
+        const mobile = formData.get("mobile") as string;
+        const email = formData.get("email") as string;
+        const country = formData.get("country") as string;
 
-    const date = new Date();
-    date.setDate(date.getDate() + days);
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    const expDate = `${yyyy}${mm}${dd}`; // For Key Generation
-    const displayExpDate = `${yyyy}-${mm}-${dd}`;
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const expDate = `${yyyy}${mm}${dd}`; // For Key Generation
+        const displayExpDate = `${yyyy}-${mm}-${dd}`;
 
-    const key = generateLicenseKey(hwid, expDate);
+        const key = generateLicenseKey(hwid, expDate);
 
-    // Save to DB
-    const newLicense: License = {
-        id: Math.random().toString(36).substring(2, 9),
-        name,
-        mobile,
-        email,
-        country,
-        hwid,
-        key,
-        expiry: displayExpDate,
-        status: 'Active',
-        created: new Date().toISOString().split('T')[0]
-    };
+        // Save to DB
+        const newLicense: License = {
+            id: Math.random().toString(36).substring(2, 9),
+            name,
+            mobile,
+            email,
+            country,
+            hwid,
+            key,
+            expiry: displayExpDate,
+            status: 'Active',
+            created: new Date().toISOString().split('T')[0]
+        };
 
-    await saveLicense(newLicense);
-    revalidatePath('/');
+        await saveLicense(newLicense);
+        revalidatePath('/');
 
-    return { success: true, key, expDate: displayExpDate, license: newLicense };
+        return { success: true, key, expDate: displayExpDate, license: newLicense };
+    } catch (e: any) {
+        console.error("Create License Error:", e);
+        return { success: false, error: e.message || "Unknown Server Error" };
+    }
 }
 
 import { cookies } from 'next/headers';

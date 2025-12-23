@@ -92,6 +92,8 @@ export default function Dashboard() {
         if (res.success && res.key && res.license) {
             setGeneratedKey(res.key);
             setLicenses(prev => [res.license!, ...prev]);
+        } else if (res.error) {
+            alert("Error Generating License: " + res.error);
         }
     };
 
