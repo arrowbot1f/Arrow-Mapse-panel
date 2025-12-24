@@ -75,25 +75,28 @@ export default function Dashboard() {
 
     const handleGenerate = async () => {
         setLoading(true);
-        // Create FormData for the server action
-        const fd = new FormData();
-        fd.append('hwid', formData.hwid);
-        fd.append('days', formData.days);
-        fd.append('name', formData.name);
-        fd.append('mobile', formData.mobile);
-        fd.append('email', formData.email);
-        fd.append('country', formData.country);
+        try {
+            // Create FormData for the server action
+            const fd = new FormData();
+            fd.append('hwid', formData.hwid);
+            fd.append('days', formData.days);
+            fd.append('name', formData.name);
+            fd.append('mobile', formData.mobile);
+            fd.append('email', formData.email);
+            fd.append('country', formData.country);
 
-        // Simulate delay removed for speed
+            const res = await createLicense(fd);
 
-        const res = await createLicense(fd);
-        setLoading(false);
-
-        if (res.success && res.key && res.license) {
-            setGeneratedKey(res.key);
-            setLicenses(prev => [res.license!, ...prev]);
-        } else if (res.error) {
-            alert("Error Generating License: " + res.error);
+            if (res.success && res.key && res.license) {
+                setGeneratedKey(res.key);
+                setLicenses(prev => [res.license!, ...prev]);
+            } else if (res.error) {
+                alert("Error Generating License: " + res.error);
+            }
+        } catch (e) {
+            alert("Network Error: Failed to reach server. Please check your connection.");
+        } finally {
+            setLoading(false);
         }
     };
 

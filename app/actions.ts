@@ -88,7 +88,10 @@ export async function createLicense(formData: FormData) {
 import { cookies } from 'next/headers';
 
 export async function login(email: string, pass: string) {
-    if (email === "omarali2022rx@gmai.com" && pass === "012823513rX") {
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@arrow-mapse.com";
+    const ADMIN_PASS = process.env.ADMIN_PASSWORD || "admin123";
+
+    if (email === ADMIN_EMAIL && pass === ADMIN_PASS) {
         cookies().set('admin_session', 'valid_secure_session', {
             secure: true,
             httpOnly: true,
