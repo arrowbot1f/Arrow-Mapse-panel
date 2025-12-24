@@ -9,29 +9,37 @@ export async function fetchLicenses() {
 }
 
 export async function removeLicenseAction(id: string) {
-    await removeLicense(id);
-    revalidatePath('/');
-    return { success: true };
+    try {
+        await removeLicense(id);
+        revalidatePath('/');
+        return { success: true };
+    } catch (e) {
+        return { success: false, error: "Failed to remove license" };
+    }
 }
 
 export async function toggleBlockAction(id: string) {
-    const licenses = await getLicenses();
-    const license = licenses.find(l => l.id === id);
-    if (license) {
-        // Toggle Logic
-        if (license.status === 'Blocked') {
-            // Restore to Active (or Expired if date passed)
-            const today = new Date().toISOString().split('T')[0].replace(/-/g, "");
-            const exp = license.expiry.replace(/-/g, "");
-            license.status = parseInt(today) > parseInt(exp) ? 'Expired' : 'Active';
-        } else {
-            license.status = 'Blocked';
+    try {
+        const licenses = await getLicenses();
+        const license = licenses.find(l => l.id === id);
+        if (license) {
+            // Toggle Logic
+            if (license.status === 'Blocked') {
+                // Restore to Active (or Expired if date passed)
+                const today = new Date().toISOString().split('T')[0].replace(/-/g, "");
+                const exp = license.expiry.replace(/-/g, "");
+                license.status = parseInt(today) > parseInt(exp) ? 'Expired' : 'Active';
+            } else {
+                license.status = 'Blocked';
+            }
+            await saveLicense(license);
+            revalidatePath('/');
+            return { success: true, status: license.status };
         }
-        await saveLicense(license);
-        revalidatePath('/');
-        return { success: true, status: license.status };
+        return { success: false, error: "License not found" };
+    } catch (e) {
+        return { success: false, error: "Failed to toggle block status" };
     }
-    return { success: false };
 }
 
 export async function createLicense(formData: FormData) {
